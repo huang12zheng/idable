@@ -1,0 +1,8 @@
+[package]
+name = "idable"
+version = "0.1.0"
+edition = "2021"
+description = "some sequence with no lock."
+license = "MIT"
+[features]
+for-test = []
