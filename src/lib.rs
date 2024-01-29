@@ -23,7 +23,8 @@ pub type SID = u64;
 /// Represents a sequential number generator.
 #[derive(Default)]
 pub struct Seq(SIDGEN);
-
+unsafe impl Send for Seq {}
+unsafe impl Sync for Seq {}
 impl Seq {
     /// Creates a new `Seq` instance with an initial value of 1.
     ///
@@ -48,7 +49,7 @@ impl Seq {
     /// let mut seq = Seq::new();
     /// let next_id = seq.next_id();
     /// ```
-    pub fn next_id(&mut self) -> SID {
+    pub fn next_id(&self) -> SID {
         self.0.fetch_add(1, SeqCst)
     }
 
@@ -62,7 +63,7 @@ impl Seq {
     /// let mut seq = Seq::new();
     /// seq.reset();
     /// ```
-    pub fn reset(&mut self) {
+    pub fn reset(&self) {
         self.0.store(0, Release);
     }
 }
@@ -77,6 +78,8 @@ pub struct TimestampSeq {
     sequence: AtomicU64,
     last_cycle_timestamp: AtomicU64,
 }
+unsafe impl Send for TimestampSeq {}
+unsafe impl Sync for TimestampSeq {}
 fn get_timestamp() -> u64 {
     SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
@@ -111,7 +114,7 @@ impl TimestampSeq {
     /// // Print the generated unique ID.
     /// println!("Generated Unique ID: {}", unique_id);
     /// ```
-    pub fn next_id(&mut self) -> u64 {
+    pub fn next_id(&self) -> u64 {
         let sequence = self.sequence.fetch_add(1, SeqCst) & SEQUENCE_MASK;
         let mut new_timestamp = get_timestamp();
         // If the sequence goes one cycle, check if the timestamp hasn't changed yet
@@ -142,7 +145,7 @@ mod tests {
 
     #[test]
     fn test_next_generates_unique_ids() {
-        let mut timestamp_seq = TimestampSeq::new();
+        let timestamp_seq = TimestampSeq::new();
 
         // Generate multiple unique IDs and ensure they are different.
         let id1 = timestamp_seq.next_id();
@@ -156,7 +159,7 @@ mod tests {
 
     #[test]
     fn test_next_increases_sequence() {
-        let mut timestamp_seq = TimestampSeq::new();
+        let timestamp_seq = TimestampSeq::new();
 
         // Generate IDs and ensure the sequence increases.
         let id1 = timestamp_seq.next_id();
@@ -167,7 +170,7 @@ mod tests {
 
     #[test]
     fn test_next_does_not_repeat_ids() {
-        let mut timestamp_seq = TimestampSeq::new();
+        let timestamp_seq = TimestampSeq::new();
 
         // Generate multiple IDs and ensure no repetition.
         let id1 = timestamp_seq.next_id();
@@ -191,7 +194,7 @@ mod tests {
 
     #[test]
     fn test_next_wait_for_next_millis() {
-        let mut timestamp_seq = TimestampSeq::new();
+        let timestamp_seq = TimestampSeq::new();
 
         // Generate two IDs in quick succession and ensure the second one has a greater timestamp.
         let id1 = timestamp_seq.next_id();
