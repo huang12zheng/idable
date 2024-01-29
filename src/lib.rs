@@ -23,8 +23,8 @@ pub type SID = u64;
 /// Represents a sequential number generator.
 #[derive(Default)]
 pub struct Seq(SIDGEN);
-unsafe impl Send for Seq {}
-unsafe impl Sync for Seq {}
+// unsafe impl Send for Seq {}
+// unsafe impl Sync for Seq {}
 impl Seq {
     /// Creates a new `Seq` instance with an initial value of 1.
     ///
@@ -78,8 +78,8 @@ pub struct TimestampSeq {
     sequence: AtomicU64,
     last_cycle_timestamp: AtomicU64,
 }
-unsafe impl Send for TimestampSeq {}
-unsafe impl Sync for TimestampSeq {}
+// unsafe impl Send for TimestampSeq {}
+// unsafe impl Sync for TimestampSeq {}
 fn get_timestamp() -> u64 {
     SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
